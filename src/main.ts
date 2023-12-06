@@ -3,7 +3,7 @@ import App from './App.vue';
 import { createApp } from 'vue';
 import { setLocale } from 'yup';
 import { ptShort } from 'yup-locale-pt';
-import '@/firebase';
+import '@/db/firebase';
 
 setLocale({ ...ptShort });
 

@@ -18,16 +18,11 @@
 
 <script lang="ts" setup>
   import ShelfButton from '@/components/ShelfButton.vue';
-  import { db } from '@/firebase';
+  import { db } from '@/db/firebase';
+  import { ICollection } from '@/store/collection';
   import { collection, getDocs } from 'firebase/firestore';
   import { ref } from 'vue';
   import { useRouter } from 'vue-router';
-
-  interface ICollection {
-    id: string
-    name: string
-    quantity: number
-  }
 
   const collections = ref<ICollection[]>([]);
   const router = useRouter();

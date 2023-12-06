@@ -30,7 +30,7 @@
   import ShelfButton from '@/components/ShelfButton.vue';
   import ShelfInput from '@/components/inputs/ShelfInput.vue';
   import { useForm } from 'vee-validate';
-  import { db } from '@/firebase';
+  import { db } from '@/db/firebase';
   import { collection, addDoc, getDocs } from 'firebase/firestore';
   import { object, string, number, ObjectSchema } from 'yup';
   import { ref } from 'vue';

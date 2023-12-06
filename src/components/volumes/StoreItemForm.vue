@@ -37,7 +37,6 @@
   import { watchEffect } from 'vue';
 
   export interface IStoreItemData {
-    id?: string
     store: string
     link?: string
     price?: number
