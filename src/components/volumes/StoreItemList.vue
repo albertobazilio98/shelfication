@@ -16,7 +16,10 @@
       Adicionar
     </ShelfButton>
     <v-dialog v-model="dialog">
-      <StoreItemForm :store-item="storeItemFormData" @submit="(values) => saveStoreItem(values)" />
+      <StoreItemForm
+        :store-item="storeItemFormData"
+        @submit="(values) => saveStoreItem(values)"
+      />
     </v-dialog>
   </div>
 </template>
