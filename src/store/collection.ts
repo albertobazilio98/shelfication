@@ -1,6 +1,7 @@
 import { db } from '@/db/firebase';
 import { addDoc, collection, doc, getDoc, getDocs } from 'firebase/firestore';
 import { defineStore } from 'pinia';
+import { useUserStore } from './user';
 
 export interface ICollection {
   id: string
@@ -21,13 +22,21 @@ export const useCollectionStore = defineStore({
   }),
   actions: {
     async createCollection(data: Omit<ICollection, 'id'>) {
-      await addDoc(collection(db, 'collections'), {
+      const uid = useUserStore().uid;
+
+      if (!uid) throw new Error('user doesnt exists');
+
+      await addDoc(collection(db, 'users', uid, 'collections'), {
         ...data,
         quantity: +data.quantity,
       });
     },
     async getCollections() {
-      const snapshot = await getDocs(collection(db, 'collections'));
+      const uid = useUserStore().uid;
+
+      if (!uid) throw new Error('user doesnt exists');
+
+      const snapshot = await getDocs(collection(db, 'users', uid, 'collections'));
       const data: ICollection[] = [];
       snapshot.forEach((doc) => {
         data.push({
@@ -38,7 +47,11 @@ export const useCollectionStore = defineStore({
       this.collections = data;
     },
     async getCollection(collectionId: string) {
-      const snapshot = await getDoc(doc(db, 'collections', collectionId));
+      const uid = useUserStore().uid;
+
+      if (!uid) throw new Error('user doesnt exists');
+
+      const snapshot = await getDoc(doc(db, 'users', uid, 'collections', collectionId));
 
       this.collection = {
         id: snapshot.id,

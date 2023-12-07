@@ -1,6 +1,7 @@
 import { db } from '@/db/firebase';
 import { addDoc, collection, doc, getDocs, setDoc, updateDoc } from 'firebase/firestore';
 import { defineStore } from 'pinia';
+import { useUserStore } from './user';
 
 export interface IVolume {
   id?: string
@@ -33,7 +34,11 @@ export const useVolumeStore = defineStore({
         index: index,
         storeItems: [],
       }));
-      const snapshot = await getDocs(collection(db, 'collections', this.collectionId, 'volumes'));
+      const uid = useUserStore().uid;
+
+      if (!uid) throw new Error('user doesnt exists');
+
+      const snapshot = await getDocs(collection(db, 'users', uid, 'collections', this.collectionId, 'volumes'));
       snapshot.forEach((doc) => {
         const volume = {
           id: doc.id,
@@ -44,8 +49,12 @@ export const useVolumeStore = defineStore({
     },
     async addVolume() {
       if (!this.collectionId) throw new Error('collection needs to be defined');
+      const uid = useUserStore().uid;
 
-      await updateDoc(doc(db, 'collections', this.collectionId), {
+      if (!uid) throw new Error('user doesnt exists');
+
+
+      await updateDoc(doc(db, 'users', uid, 'collections', this.collectionId), {
         quantity: this.volumes.length + 1,
       });
 
@@ -61,7 +70,11 @@ export const useVolumeStore = defineStore({
       if (!id) {
         await this.createVolume(volumeData.index, volumeData);
       } else {
-        await setDoc(doc(db, 'collections', this.collectionId, 'volumes', id), volumeData);
+        const uid = useUserStore().uid;
+
+        if (!uid) throw new Error('user doesnt exists');
+
+        await setDoc(doc(db, 'users', uid, 'collections', this.collectionId, 'volumes', id), volumeData);
         this.volumes[volumeData.index] = {
           ...this.volumes[volumeData.index],
           ...volumeData,
@@ -76,7 +89,11 @@ export const useVolumeStore = defineStore({
         ...volumeData,
       };
 
-      const ref = await addDoc(collection(db, 'collections', this.collectionId, 'volumes'), data);
+      const uid = useUserStore().uid;
+
+      if (!uid) throw new Error('user doesnt exists');
+
+      const ref = await addDoc(collection(db, 'users', uid, 'collections', this.collectionId, 'volumes'), data);
       this.volumes[index] = {
         id: ref.id,
         ...data,

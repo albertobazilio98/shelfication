@@ -21,7 +21,7 @@
   import { useCollectionStore } from '@/store/collection';
   import { useVolumeStore } from '@/store/volume';
   import { storeToRefs } from 'pinia';
-  import { ref } from 'vue';
+  import { watch, ref } from 'vue';
   import { useRoute, useRouter } from 'vue-router';
 
   const route = useRoute();
@@ -41,12 +41,18 @@
   const getCollection = async () => {
     await collectionStore.getCollection(collectionId.value);
 
-    if (collection?.value) {
+    if (collection.value) {
       await volumeStore.fetchVolumes(collection?.value.quantity, collectionId.value);
     } else {
       router.push({ name: 'list-collections' });
     }
   };
+
+  watch(collection, async () => {
+    if (collection.value) {
+      await volumeStore.fetchVolumes(collection?.value.quantity, collectionId.value);
+    }
+  });
 
   getCollection();
 

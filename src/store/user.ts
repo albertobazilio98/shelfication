@@ -24,9 +24,11 @@ export const useUserStore = defineStore({
         name: user.displayName!,
         uid: user.uid,
       };
+      console.log(this.user);
     },
     destroyUser() {
       this.user = undefined;
     },
   },
+  persist: true,
 });

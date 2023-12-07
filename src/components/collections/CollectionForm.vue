@@ -29,7 +29,6 @@
   import ShelfInput from '../inputs/ShelfInput.vue';
   import { useForm } from 'vee-validate';
   import { object, string } from 'yup';
-  import { watchEffect } from 'vue';
 
   export interface IColletionData {
     name: string
@@ -41,15 +40,11 @@
     quantity: string
   }
 
-  const props = defineProps<{
-    collection?: IColletionData
-  }>();
-
   const emit = defineEmits<{
     submit: [values: IColletionData]
   }>();
 
-  const { handleSubmit, resetForm, setValues } = useForm<IRawCollection>({
+  const { handleSubmit, resetForm } = useForm<IRawCollection>({
     validationSchema: object({
       name: string().required(),
       quantity: string().required(),
@@ -62,17 +57,6 @@
       quantity: parseInt(values.quantity),
     });
     resetForm();
-  });
-
-  watchEffect(() => {
-    if (props.collection) {
-      setValues({
-        name: props.collection.name,
-        quantity: `${props.collection.quantity}`,
-      });
-    } else {
-      resetForm();
-    }
   });
 
 </script>

@@ -1,5 +1,7 @@
 <template>
-  <CollectionForm @submit="submit" />
+  <CollectionForm
+    @submit="submit"
+  />
 </template>
 
 <script lang="ts" setup>
