@@ -1,6 +1,6 @@
 <template>
   <div class="collections-list">
-    <h2>{{ currentCollection?.name }}</h2>
+    <h2>{{ collection?.name }}</h2>
     <v-expansion-panels multiple variant="accordion" class="list">
       <VolumeDetails
         v-for="(volume, index) in volumes"
@@ -18,10 +18,8 @@
 <script lang="ts" setup>
   import ShelfButton from '@/components/ShelfButton.vue';
   import VolumeDetails from '@/components/volumes/VolumeDetails.vue';
-  import { db } from '@/db/firebase';
-  import { ICollection } from '@/store/collection';
+  import { useCollectionStore } from '@/store/collection';
   import { useVolumeStore } from '@/store/volume';
-  import { doc, getDoc } from 'firebase/firestore';
   import { storeToRefs } from 'pinia';
   import { ref } from 'vue';
   import { useRoute, useRouter } from 'vue-router';
@@ -29,9 +27,11 @@
   const route = useRoute();
   const router = useRouter();
   const volumeStore = useVolumeStore();
-  const { volumes } = storeToRefs(volumeStore);
+  const collectionStore = useCollectionStore();
 
-  const currentCollection = ref<ICollection>();
+  const { volumes } = storeToRefs(volumeStore);
+  const { collection } = storeToRefs(collectionStore);
+
   const collectionId = ref<string>(route.params.id as string);
 
   const addVolume = async () => {
@@ -39,15 +39,13 @@
   };
 
   const getCollection = async () => {
-    const snapshot = await getDoc(doc(db, 'collections', collectionId.value));
-    if (!snapshot.exists()) router.push({ name: 'collections-list' });
+    await collectionStore.getCollection(collectionId.value);
 
-    currentCollection.value = {
-      id: snapshot.id,
-      ...snapshot.data(),
-    } as ICollection;
-
-    await volumeStore.fetchVolumes(currentCollection.value.quantity, collectionId.value);
+    if (collection?.value) {
+      await volumeStore.fetchVolumes(collection?.value.quantity, collectionId.value);
+    } else {
+      router.push({ name: 'list-collections' });
+    }
   };
 
   getCollection();

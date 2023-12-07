@@ -21,18 +21,8 @@
 </template>
 
 <script lang="ts" setup>
-  import { db } from '@/db/firebase';
-  import { collection, getDocs } from 'firebase/firestore';
-  import { ref, watch } from 'vue';
   import { IVolume, useVolumeStore } from '@/store/volume';
   import StoreItemList from './StoreItemList.vue';
-
-  interface IStoreItem {
-    id: string
-    store: string
-    link?: string
-    price?: number
-  }
 
   const props = defineProps<{
     volume: IVolume
@@ -41,30 +31,10 @@
 
   const volumeStore = useVolumeStore();
 
-  const storeItems = ref<IStoreItem[]>([]);
-
   const setObtained = async (obtained: boolean) => {
     await volumeStore.updateVolume({
       ...props.volume,
       obtained,
-    });
-  };
-
-  watch(() => props.volume.id, () => {
-    getStoreItems();
-  });
-
-  const getStoreItems = async () => {
-    if (!props.volume.id || storeItems.value.length > 0) return;
-
-    const snapshot = await getDocs(collection(db, 'collections', props.collectionId, 'volumes', props.volume.id, 'storeItems'));
-
-    snapshot.forEach((doc) => {
-      const storeItem = {
-        ...doc.data(),
-        id: doc.id,
-      } as IStoreItem;
-      storeItems.value.push(storeItem);
     });
   };
 

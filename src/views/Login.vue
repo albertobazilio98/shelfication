@@ -8,8 +8,10 @@
   import { useRouter } from 'vue-router';
   import { GoogleAuthProvider, getAuth, getRedirectResult, signInWithRedirect } from 'firebase/auth';
   import ShelfButton from '@/components/ShelfButton.vue';
+  import { useUserStore } from '@/store/user';
 
   const router = useRouter();
+  const userStore = useUserStore();
 
   const provider = new GoogleAuthProvider();
   const auth = getAuth();
@@ -17,10 +19,13 @@
   const login = () => signInWithRedirect(auth, provider);
 
   getRedirectResult(auth).then((result) => {
-    if (!result) throw 'login failed';
-    const userId = result?.user.uid;
-    console.log(userId);
-    router.push({ name: 'list-collections' });
+    if (!result) {
+      userStore.destroyUser();
+    } else {
+      userStore.setUser(result.user);
+      router.push({ name: 'list-collections' });
+    }
+
   });
 </script>
 <style lang="scss" scoped>

@@ -18,28 +18,16 @@
 
 <script lang="ts" setup>
   import ShelfButton from '@/components/ShelfButton.vue';
-  import { db } from '@/db/firebase';
-  import { ICollection } from '@/store/collection';
-  import { collection, getDocs } from 'firebase/firestore';
-  import { ref } from 'vue';
+  import { useCollectionStore } from '@/store/collection';
+  import { storeToRefs } from 'pinia';
   import { useRouter } from 'vue-router';
 
-  const collections = ref<ICollection[]>([]);
   const router = useRouter();
 
-  const getCollections = async () => {
-    const snapshot = await getDocs(collection(db, 'collections'));
-    const data: ICollection[] = [];
-    snapshot.forEach((doc) => {
-      data.push({
-        id: doc.id,
-        ...doc.data(),
-      } as ICollection);
-    });
-    collections.value = data;
-  };
+  const collectionStore = useCollectionStore();
+  const { collections } = storeToRefs(collectionStore);
 
-  getCollections();
+  collectionStore.getCollections();
 
 </script>
 <style lang="scss" scoped>
