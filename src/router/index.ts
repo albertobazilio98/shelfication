@@ -7,6 +7,11 @@ const routes = [
     redirect: '/colecoes',
   },
   {
+    path: '/login',
+    name: 'login',
+    component: () => import('@/views/Login.vue'),
+  },
+  {
     path: '/colecoes',
     children: [
       {
