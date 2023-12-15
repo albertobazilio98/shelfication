@@ -1,10 +1,13 @@
 <template>
   <div class="collections-list">
     <h2>{{ collection?.name }}</h2>
+    <div class="filters">
+      <VolumesFilter />
+    </div>
     <v-expansion-panels multiple variant="accordion" class="list">
       <VolumeDetails
-        v-for="(volume, index) in volumes"
-        :volume="volumes[index]"
+        v-for="(volume, index) in filteredVolumes"
+        :volume="filteredVolumes[index]"
         :collection-id="collectionId"
         :key="volume.index"
       />
@@ -18,6 +21,7 @@
 <script lang="ts" setup>
   import ShelfButton from '@/components/ShelfButton.vue';
   import VolumeDetails from '@/components/volumes/VolumeDetails.vue';
+  import VolumesFilter from '@/components/volumes/VolumesFilter.vue';
   import { useCollectionStore } from '@/store/collection';
   import { useVolumeStore } from '@/store/volume';
   import { storeToRefs } from 'pinia';
@@ -29,7 +33,7 @@
   const volumeStore = useVolumeStore();
   const collectionStore = useCollectionStore();
 
-  const { volumes } = storeToRefs(volumeStore);
+  const { filteredVolumes } = storeToRefs(volumeStore);
   const { collection } = storeToRefs(collectionStore);
 
   const collectionId = ref<string>(route.params.id as string);
@@ -59,6 +63,13 @@
 </script>
 <style lang="scss" scoped>
   .collections-list {
+    .filters {
+      padding: 12px 0 0 0;
+
+      .obtained-filter {
+        width: 124px;
+      }
+    }
     .list {
       padding: 16px 0;
 

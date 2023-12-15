@@ -19,14 +19,32 @@ export interface IStoreItem {
 export interface IVolumeStore {
   collectionId?: string
   volumes: IVolume[]
+  filters: IVolumeFilters
+}
+
+export interface IVolumeFilters {
+  obtained?: boolean
 }
 
 export const useVolumeStore = defineStore({
   id: 'Volume',
   state: (): IVolumeStore => ({
     volumes: [],
+    filters: {
+      obtained: undefined,
+    },
   }),
+  getters: {
+    filteredVolumes: (state) => {
+      if (typeof state.filters.obtained !== 'boolean') return state.volumes;
+
+      return state.volumes.filter(volume => volume.obtained === state.filters.obtained);
+    },
+  },
   actions: {
+    setFilters(filters: IVolumeFilters) {
+      this.filters = filters;
+    },
     async fetchVolumes(quantity: number, collectionId: string) {
       this.collectionId = collectionId;
       this.volumes = new Array(quantity).fill(undefined).map((_, index) => ({

@@ -21,3 +21,6 @@ pnpm-debug.log*
 *.njsproj
 *.sln
 *.sw?
+dev-dist/registerSW.js
+dev-dist/sw.js
+dev-dist/workbox-b5f7729d.js
