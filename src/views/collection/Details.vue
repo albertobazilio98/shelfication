@@ -4,34 +4,39 @@
     <div class="filters">
       <VolumesFilter />
     </div>
-    <v-expansion-panels multiple variant="accordion" class="list">
-      <VolumeDetails
-        v-for="(volume, index) in filteredVolumes"
-        :volume="filteredVolumes[index]"
-        :collection-id="collectionId"
-        :key="volume.index"
-      />
-    </v-expansion-panels>
-    <ShelfButton @click="addVolume">
-      Adicionar volume
-    </ShelfButton>
+    <LoadingContainer :is-loading="isLoading">
+      <v-expansion-panels multiple variant="accordion" class="list">
+        <VolumeDetails
+          v-for="(volume, index) in filteredVolumes"
+          :volume="filteredVolumes[index]"
+          :collection-id="collectionId"
+          :key="volume.index"
+        />
+      </v-expansion-panels>
+      <ShelfButton @click="addVolume">
+        Adicionar volume
+      </ShelfButton>
+    </LoadingContainer>
   </div>
 </template>
 
 <script lang="ts" setup>
+  import LoadingContainer from '@/components/LoadingContainer.vue';
   import ShelfButton from '@/components/ShelfButton.vue';
   import VolumeDetails from '@/components/volumes/VolumeDetails.vue';
   import VolumesFilter from '@/components/volumes/VolumesFilter.vue';
+  import { useLoading } from '@/composables/useLoading';
   import { useCollectionStore } from '@/store/collection';
   import { useVolumeStore } from '@/store/volume';
   import { storeToRefs } from 'pinia';
-  import { watch, ref } from 'vue';
+  import { ref } from 'vue';
   import { useRoute, useRouter } from 'vue-router';
 
   const route = useRoute();
   const router = useRouter();
   const volumeStore = useVolumeStore();
   const collectionStore = useCollectionStore();
+  const { awaitLoading, isLoading } = useLoading();
 
   const { filteredVolumes } = storeToRefs(volumeStore);
   const { collection } = storeToRefs(collectionStore);
@@ -52,13 +57,7 @@
     }
   };
 
-  watch(collection, async () => {
-    if (collection.value) {
-      await volumeStore.fetchVolumes(collection?.value.quantity, collectionId.value);
-    }
-  });
-
-  getCollection();
+  awaitLoading(getCollection());
 
 </script>
 <style lang="scss" scoped>

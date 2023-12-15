@@ -1,6 +1,7 @@
 <template>
   <v-app>
     <v-main class="main">
+      <GlobalLoader />
       <router-view />
     </v-main>
   </v-app>
@@ -10,6 +11,7 @@
   import { getAuth, onAuthStateChanged } from 'firebase/auth';
   import { useRouter } from 'vue-router';
   import { useUserStore } from './store/user';
+  import GlobalLoader from './components/GlobalLoader.vue';
 
   const auth = getAuth();
   const userStore = useUserStore();
