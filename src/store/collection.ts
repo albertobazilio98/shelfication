@@ -1,12 +1,17 @@
 import { db } from '@/db/firebase';
-import { addDoc, collection, doc, getDoc, getDocs } from 'firebase/firestore';
+import { addDoc, collection, doc, getCountFromServer, getDoc, getDocs, query, where } from 'firebase/firestore';
 import { defineStore } from 'pinia';
 import { useUserStore } from './user';
+
+export interface ICollectionInfo {
+  progress: number
+}
 
 export interface ICollection {
   id: string
   name: string
   quantity: number
+  info?: ICollectionInfo
 }
 
 export interface ICollectionStore {
@@ -44,7 +49,25 @@ export const useCollectionStore = defineStore({
           ...doc.data(),
         } as ICollection);
       });
-      this.collections = data;
+      this.collections = await Promise.all(data.map(async collection => {
+        const info = await this.getCollectionInfo(collection.id);
+        return {
+          ...collection,
+          info,
+        };
+      }));
+      console.log(this.collections);
+    },
+    async getCollectionInfo(collectionId: string): Promise<ICollectionInfo> {
+      const uid = useUserStore().uid;
+      if (!uid) throw new Error('user doesnt exists');
+      const volumesCollection = collection(db, 'users', uid, 'collections', collectionId, 'volumes');
+      const volumesQuery = query(volumesCollection, where('obtained', '==', true));
+      const obtainedCount = await getCountFromServer(volumesQuery);
+
+      return {
+        progress: obtainedCount.data().count,
+      };
     },
     async getCollection(collectionId: string) {
       const uid = useUserStore().uid;

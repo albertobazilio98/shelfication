@@ -6,9 +6,16 @@
         <v-list-item
           v-for="collection in collections"
           :key="collection.id"
-          :title="collection.name"
           @click="router.push({ name: 'collection-details', params: { id: collection.id } })"
         >
+          <div class="collection">
+            <div class="title">{{ collection.name }}</div>
+            <div class="progress" v-if="collection.info">
+              <v-chip>
+                {{ collection.info.progress }}/{{ collection.quantity }}
+              </v-chip>
+            </div>
+          </div>
         </v-list-item>
       </v-list>
     </LoadingContainer>
@@ -38,17 +45,20 @@
 </script>
 <style lang="scss" scoped>
   .collections-list {
-    .loader {
-      width: 100%;
-      padding: 128px 16px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
     .list {
       display: flex;
       flex-direction: column;
       padding: 16px 0;
+
+      .collection {
+        display: grid;
+        grid-template-columns: 200px 1fr;
+        gap: 16px;
+
+        .title {
+          font-weight: 500;
+        }
+      }
     }
   }
 </style>
