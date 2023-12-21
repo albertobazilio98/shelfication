@@ -56,7 +56,6 @@ export const useCollectionStore = defineStore({
           info,
         };
       }));
-      console.log(this.collections);
     },
     async getCollectionInfo(collectionId: string): Promise<ICollectionInfo> {
       const uid = useUserStore().uid;
