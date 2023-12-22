@@ -1,7 +1,7 @@
-import { db } from '@/db/firebase';
-import { addDoc, collection, doc, getDocs, setDoc, updateDoc } from 'firebase/firestore';
 import { defineStore } from 'pinia';
 import { useUserStore } from './user';
+import { Volume } from '@/models/volume';
+import { Collection } from '@/models/collection';
 
 export interface IVolume {
   id?: string
@@ -56,12 +56,9 @@ export const useVolumeStore = defineStore({
 
       if (!uid) throw new Error('user doesnt exists');
 
-      const snapshot = await getDocs(collection(db, 'users', uid, 'collections', this.collectionId, 'volumes'));
-      snapshot.forEach((doc) => {
-        const volume = {
-          id: doc.id,
-          ...doc.data(),
-        } as IVolume;
+      const volumes = await new Volume(uid, this.collectionId).fetch();
+
+      volumes.forEach((volume) => {
         this.volumes[volume.index] = { ...this.volumes[volume.index], ...volume };
       });
     },
@@ -72,7 +69,8 @@ export const useVolumeStore = defineStore({
       if (!uid) throw new Error('user doesnt exists');
 
 
-      await updateDoc(doc(db, 'users', uid, 'collections', this.collectionId), {
+      await new Collection(uid).update({
+        id: this.collectionId,
         quantity: this.volumes.length + 1,
       });
 
@@ -92,7 +90,7 @@ export const useVolumeStore = defineStore({
 
         if (!uid) throw new Error('user doesnt exists');
 
-        await setDoc(doc(db, 'users', uid, 'collections', this.collectionId, 'volumes', id), volumeData);
+        await new Volume(uid, this.collectionId).update({ id, ...volumeData });
         this.volumes[volumeData.index] = {
           ...this.volumes[volumeData.index],
           ...volumeData,
@@ -111,11 +109,8 @@ export const useVolumeStore = defineStore({
 
       if (!uid) throw new Error('user doesnt exists');
 
-      const ref = await addDoc(collection(db, 'users', uid, 'collections', this.collectionId, 'volumes'), data);
-      this.volumes[index] = {
-        id: ref.id,
-        ...data,
-      };
+      const volume = await new Volume(uid, this.collectionId).create(data);
+      this.volumes[index] = volume;
     },
     async createStoreItem(index: number, storeItemData: IStoreItem) {
       if (!this.collectionId) throw new Error('collection needs to be defined');

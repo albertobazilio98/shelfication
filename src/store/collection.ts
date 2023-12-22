@@ -1,16 +1,12 @@
-import { db } from '@/db/firebase';
-import { addDoc, collection, doc, getCountFromServer, getDoc, getDocs, query, where } from 'firebase/firestore';
 import { defineStore } from 'pinia';
 import { useUserStore } from './user';
+import { Collection, IcollectionModel } from '@/models/collection';
 
 export interface ICollectionInfo {
   progress: number
 }
 
-export interface ICollection {
-  id: string
-  name: string
-  quantity: number
+export interface ICollection extends IcollectionModel {
   info?: ICollectionInfo
 }
 
@@ -26,12 +22,12 @@ export const useCollectionStore = defineStore({
     collections: [],
   }),
   actions: {
-    async createCollection(data: Omit<ICollection, 'id'>) {
+    async createCollection(data: Omit<IcollectionModel, 'id'>) {
       const uid = useUserStore().uid;
 
       if (!uid) throw new Error('user doesnt exists');
 
-      await addDoc(collection(db, 'users', uid, 'collections'), {
+      await new Collection(uid).create({
         ...data,
         quantity: +data.quantity,
       });
@@ -41,14 +37,7 @@ export const useCollectionStore = defineStore({
 
       if (!uid) throw new Error('user doesnt exists');
 
-      const snapshot = await getDocs(collection(db, 'users', uid, 'collections'));
-      const data: ICollection[] = [];
-      snapshot.forEach((doc) => {
-        data.push({
-          id: doc.id,
-          ...doc.data(),
-        } as ICollection);
-      });
+      const data: ICollection[] = await new Collection(uid).fetch();
       this.collections = await Promise.all(data.map(async collection => {
         const info = await this.getCollectionInfo(collection.id);
         return {
@@ -60,12 +49,12 @@ export const useCollectionStore = defineStore({
     async getCollectionInfo(collectionId: string): Promise<ICollectionInfo> {
       const uid = useUserStore().uid;
       if (!uid) throw new Error('user doesnt exists');
-      const volumesCollection = collection(db, 'users', uid, 'collections', collectionId, 'volumes');
-      const volumesQuery = query(volumesCollection, where('obtained', '==', true));
-      const obtainedCount = await getCountFromServer(volumesQuery);
+
+      const collectionModel = new Collection(uid);
+      const progress = await collectionModel.progress(collectionId);
 
       return {
-        progress: obtainedCount.data().count,
+        progress,
       };
     },
     async getCollection(collectionId: string) {
@@ -73,12 +62,7 @@ export const useCollectionStore = defineStore({
 
       if (!uid) throw new Error('user doesnt exists');
 
-      const snapshot = await getDoc(doc(db, 'users', uid, 'collections', collectionId));
-
-      this.collection = {
-        id: snapshot.id,
-        ...snapshot.data(),
-      } as ICollection;
+      this.collection = await new Collection(uid).fetchById(collectionId);
     },
   },
 });
