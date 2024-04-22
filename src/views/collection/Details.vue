@@ -1,21 +1,30 @@
 <template>
-  <div class="collections-list">
-    <h2>{{ collection?.name }}</h2>
-    <div class="filters">
-      <VolumesFilter />
-    </div>
+  <div class="collections-list" v-if="collection">
+    <h2>{{ collection.name }}</h2>
     <LoadingContainer :is-loading="isLoading">
-      <v-expansion-panels multiple variant="accordion" class="list">
-        <VolumeDetails
-          v-for="(volume, index) in filteredVolumes"
-          :volume="filteredVolumes[index]"
-          :collection-id="collectionId"
-          :key="volume.index"
-        />
-      </v-expansion-panels>
-      <ShelfButton @click="addVolume">
-        Adicionar volume
-      </ShelfButton>
+      <v-data-table
+        :items-per-page="0"
+        :headers="headers"
+        :items="parsedVolumes"
+      >
+        <template #top>
+          <VolumesFilter />
+        </template>
+        <template v-slot:item.actions="{ item }">
+          <div class="action">
+            <v-checkbox-btn
+              :model-value="item.obtained"
+              @change="toggleObtained(item)"
+              @click="(e: PointerEvent) => e.stopPropagation()"
+            />
+          </div>
+        </template>
+        <template #bottom>
+          <ShelfButton @click="addVolume">
+            Adicionar volume
+          </ShelfButton>
+        </template>
+      </v-data-table>
     </LoadingContainer>
   </div>
 </template>
@@ -23,13 +32,12 @@
 <script lang="ts" setup>
   import LoadingContainer from '@/components/LoadingContainer.vue';
   import ShelfButton from '@/components/ShelfButton.vue';
-  import VolumeDetails from '@/components/volumes/VolumeDetails.vue';
   import VolumesFilter from '@/components/volumes/VolumesFilter.vue';
   import { useLoading } from '@/composables/useLoading';
   import { useCollectionStore } from '@/store/collection';
-  import { useVolumeStore } from '@/store/volume';
+  import { IVolume, useVolumeStore } from '@/store/volume';
   import { storeToRefs } from 'pinia';
-  import { ref } from 'vue';
+  import { computed, ref } from 'vue';
   import { useRoute, useRouter } from 'vue-router';
 
   const route = useRoute();
@@ -40,6 +48,16 @@
 
   const { filteredVolumes } = storeToRefs(volumeStore);
   const { collection } = storeToRefs(collectionStore);
+
+  const headers = [
+    { title: 'Volume', key: 'name' },
+    { title: 'Obtido', key: 'actions', sortable: false, width: 80, align: 'center' as const },
+  ];
+
+  const parsedVolumes = computed(() => filteredVolumes.value.map((volume) => ({
+    ...volume,
+    name: `Volume ${volume.index + 1}`,
+  })));
 
   const collectionId = ref<string>(route.params.id as string);
 
@@ -55,6 +73,13 @@
     } else {
       router.push({ name: 'list-collections' });
     }
+  };
+
+  const toggleObtained = async (volume: IVolume) => {
+    await volumeStore.updateVolume({
+      ...volume,
+      obtained: !volume.obtained,
+    });
   };
 
   awaitLoading(getCollection());
